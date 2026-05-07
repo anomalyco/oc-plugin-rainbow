@@ -89,11 +89,11 @@ const rgbKey = (ink: RainbowColor) => {
 const pickColor = (list: RainbowColor[], rand: () => number) =>
   list[Math.floor(rand() * list.length)] ?? list[0]!;
 
-const setColor = (buf: Float32Array, slot: number, ink: RainbowColor) => {
-  buf[slot] = ink.r;
-  buf[slot + 1] = ink.g;
-  buf[slot + 2] = ink.b;
-  buf[slot + 3] = ink.a;
+const setColor = (buf: Float32Array | Uint16Array, slot: number, ink: RainbowColor) => {
+  writeColorValue(buf, slot, ink.r);
+  writeColorValue(buf, slot + 1, ink.g);
+  writeColorValue(buf, slot + 2, ink.b);
+  writeColorValue(buf, slot + 3, ink.a);
 };
 
 const same = (ink: RainbowColor, r: number, g: number, b: number) => {
@@ -114,8 +114,29 @@ const hit = (list: RainbowColor[], r: number, g: number, b: number) => {
   return list.some((ink) => same(ink, r, g, b));
 };
 
+const UINT16_SCALE = 255;
+
+const isUint16Buffer = (buf: Float32Array | Uint16Array): buf is Uint16Array => {
+  return buf instanceof Uint16Array;
+};
+
+const readColorValue = (buf: Float32Array | Uint16Array, slot: number): number => {
+  if (isUint16Buffer(buf)) {
+    return (buf[slot] ?? 0) / UINT16_SCALE;
+  }
+  return buf[slot] ?? 0;
+};
+
+const writeColorValue = (buf: Float32Array | Uint16Array, slot: number, value: number): void => {
+  if (isUint16Buffer(buf)) {
+    buf[slot] = Math.round(value * UINT16_SCALE);
+  } else {
+    buf[slot] = value;
+  }
+};
+
 const paint = (
-  buf: Float32Array,
+  buf: Float32Array | Uint16Array,
   slot: number,
   list: RainbowColor[],
   step: number,
@@ -129,13 +150,13 @@ const paint = (
   const r = a.r + (z.r - a.r) * gap;
   const g = a.g + (z.g - a.g) * gap;
   const b = a.b + (z.b - a.b) * gap;
-  const prevR = buf[slot]!;
-  const prevG = buf[slot + 1]!;
-  const prevB = buf[slot + 2]!;
+  const prevR = readColorValue(buf, slot);
+  const prevG = readColorValue(buf, slot + 1);
+  const prevB = readColorValue(buf, slot + 2);
 
-  buf[slot] = prevR + (r - prevR) * amt;
-  buf[slot + 1] = prevG + (g - prevG) * amt;
-  buf[slot + 2] = prevB + (b - prevB) * amt;
+  writeColorValue(buf, slot, prevR + (r - prevR) * amt);
+  writeColorValue(buf, slot + 1, prevG + (g - prevG) * amt);
+  writeColorValue(buf, slot + 2, prevB + (b - prevB) * amt);
 };
 
 const pick = (theme: RainbowTheme) => {
@@ -180,9 +201,9 @@ const createBaselinePostProcess: ImplFactory = (theme, value) => {
       for (let x = 0; x < buffer.width; x++) {
         const cell = y * buffer.width + x;
         const slot = cell * 4;
-        const r = fg[slot]!;
-        const g = fg[slot + 1]!;
-        const b = fg[slot + 2]!;
+        const r = readColorValue(fg, slot);
+        const g = readColorValue(fg, slot + 1);
+        const b = readColorValue(fg, slot + 2);
         const step = ((x * dx + y * dy) / span) * cfg.turns + time * 0.1;
         if (cfg.fg && hit(fgmark, r, g, b)) {
           paint(fg, slot, list, step, 1);
@@ -190,9 +211,9 @@ const createBaselinePostProcess: ImplFactory = (theme, value) => {
 
         if (!cfg.bg || !cfg.glow) continue;
 
-        const br = bg[slot]!;
-        const bgg = bg[slot + 1]!;
-        const bb = bg[slot + 2]!;
+        const br = readColorValue(bg, slot);
+        const bgg = readColorValue(bg, slot + 1);
+        const bb = readColorValue(bg, slot + 2);
         if (!hit(bgmark, br, bgg, bb)) continue;
 
         const haze = ((x * dx + y * dy) / span) * blur + time * 0.04 + 0.17;
