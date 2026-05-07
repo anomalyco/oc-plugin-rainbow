@@ -29,9 +29,9 @@
     "fmt:check": "oxfmt --check ."
   },
   "devDependencies": {
-    "@opencode-ai/plugin": "*",
-    "@opentui/core": "0.1.97",
-    "@opentui/solid": "0.1.97",
+    "@opencode-ai/plugin": "1.14.40",
+    "@opentui/core": "0.2.2",
+    "@opentui/solid": "0.2.2",
     "@types/bun": "latest",
     "oxfmt": "0.41.0",
     "solid-js": "1.9.11",
