@@ -55,11 +55,6 @@ const bool = (value: unknown, fallback: boolean) => {
   return value;
 };
 
-const obj = (value: unknown) => {
-  if (!value || typeof value !== "object") return;
-  return value as Record<string, unknown>;
-};
-
 const splashFadeIn = (t: number) => {
   const split = 0.78;
   const base = 0.16;
@@ -136,7 +131,6 @@ const tui: TuiPlugin = async (api, options) => {
   if (options?.enabled === false) return;
 
   const [value, setValue] = createSignal(load(api, cfg(options)));
-  const keybind = api.keybind.create({ logo_splash: splashKeybind }, obj(options?.keybinds));
   const apply: (buffer: OptimizedBuffer, delta: number) => void = createRainbowPostProcess(
     () => api.theme.current,
     value,
@@ -295,7 +289,7 @@ const tui: TuiPlugin = async (api, options) => {
     {
       title: "Show logo splash",
       value: splashCommand,
-      keybind: keybind.get("logo_splash"),
+      keybind: splashKeybind,
       category: "Plugin",
       description: "Fade to white and reveal a centered OpenCode logo screen",
       onSelect() {

@@ -38,9 +38,23 @@ export type RainbowBuffer = {
   height: number;
   buffers: {
     char: ArrayLike<number>;
-    fg: Float32Array;
-    bg: Float32Array;
+    fg: Float32Array | Uint16Array;
+    bg: Float32Array | Uint16Array;
   };
+};
+
+const isUint16 = (buf: Float32Array | Uint16Array): buf is Uint16Array =>
+  buf instanceof Uint16Array;
+
+const readColor = (buf: Float32Array | Uint16Array, slot: number) =>
+  isUint16(buf) ? buf[slot]! / 255 : buf[slot]!;
+
+const writeColor = (buf: Float32Array | Uint16Array, slot: number, value: number) => {
+  if (isUint16(buf)) {
+    buf[slot] = Math.round(value * 255);
+  } else {
+    buf[slot] = value;
+  }
 };
 
 type ThemeCache = {
@@ -185,7 +199,7 @@ const syncThemeCache = (cache: ThemeCache, theme: RainbowTheme) => {
 };
 
 const paintFull = (
-  buf: Float32Array,
+  buf: Float32Array | Uint16Array,
   slot: number,
   palette: number[],
   paletteCount: number,
@@ -206,13 +220,13 @@ const paintFull = (
   const g = baseG + (nextG - baseG) * gap;
   const b = baseB + (nextB - baseB) * gap;
 
-  buf[slot] = r;
-  buf[slot + 1] = g;
-  buf[slot + 2] = b;
+  writeColor(buf, slot, r);
+  writeColor(buf, slot + 1, g);
+  writeColor(buf, slot + 2, b);
 };
 
 const paintBlend = (
-  buf: Float32Array,
+  buf: Float32Array | Uint16Array,
   slot: number,
   palette: number[],
   paletteCount: number,
@@ -233,13 +247,13 @@ const paintBlend = (
   const r = baseR + (nextR - baseR) * gap;
   const g = baseG + (nextG - baseG) * gap;
   const b = baseB + (nextB - baseB) * gap;
-  const prevR = buf[slot]!;
-  const prevG = buf[slot + 1]!;
-  const prevB = buf[slot + 2]!;
+  const prevR = readColor(buf, slot);
+  const prevG = readColor(buf, slot + 1);
+  const prevB = readColor(buf, slot + 2);
 
-  buf[slot] = prevR + (r - prevR) * amt;
-  buf[slot + 1] = prevG + (g - prevG) * amt;
-  buf[slot + 2] = prevB + (b - prevB) * amt;
+  writeColor(buf, slot, prevR + (r - prevR) * amt);
+  writeColor(buf, slot + 1, prevG + (g - prevG) * amt);
+  writeColor(buf, slot + 2, prevB + (b - prevB) * amt);
 };
 
 const applyBoth = (
@@ -283,9 +297,9 @@ const applyBoth = (
     let bgPhase = y * bgRow + bgShift;
 
     for (let x = 0; x < width; x++, cell++, slot += 4) {
-      const r = fg[slot]!;
-      const g = fg[slot + 1]!;
-      const b = fg[slot + 2]!;
+      const r = readColor(fg, slot);
+      const g = readColor(fg, slot + 1);
+      const b = readColor(fg, slot + 2);
 
       if (
         (Math.abs(r - textR) <= eps && Math.abs(g - textG) <= eps && Math.abs(b - textB) <= eps) ||
@@ -294,9 +308,9 @@ const applyBoth = (
         paintFull(fg, slot, palette, paletteCount, fgPhase);
       }
 
-      const br = bg[slot]!;
-      const bgg = bg[slot + 1]!;
-      const bb = bg[slot + 2]!;
+      const br = readColor(bg, slot);
+      const bgg = readColor(bg, slot + 1);
+      const bb = readColor(bg, slot + 2);
       const matchBg =
         (Math.abs(br - bg0r) <= eps && Math.abs(bgg - bg0g) <= eps && Math.abs(bb - bg0b) <= eps) ||
         (Math.abs(br - bg1r) <= eps && Math.abs(bgg - bg1g) <= eps && Math.abs(bb - bg1b) <= eps) ||
@@ -347,9 +361,9 @@ const applyFgOnly = (
     let fgPhase = y * fgRow + fgShift;
 
     for (let x = 0; x < width; x++, slot += 4) {
-      const r = fg[slot]!;
-      const g = fg[slot + 1]!;
-      const b = fg[slot + 2]!;
+      const r = readColor(fg, slot);
+      const g = readColor(fg, slot + 1);
+      const b = readColor(fg, slot + 2);
       if (
         (Math.abs(r - textR) <= eps && Math.abs(g - textG) <= eps && Math.abs(b - textB) <= eps) ||
         (Math.abs(r - mutedR) <= eps && Math.abs(g - mutedG) <= eps && Math.abs(b - mutedB) <= eps)
@@ -392,12 +406,12 @@ const applyBgOnly = (
     let bgPhase = y * bgRow + bgShift;
 
     for (let x = 0; x < width; x++, cell++, slot += 4) {
-      const r = fg[slot]!;
-      const g = fg[slot + 1]!;
-      const b = fg[slot + 2]!;
-      const br = bg[slot]!;
-      const bgg = bg[slot + 1]!;
-      const bb = bg[slot + 2]!;
+      const r = readColor(fg, slot);
+      const g = readColor(fg, slot + 1);
+      const b = readColor(fg, slot + 2);
+      const br = readColor(bg, slot);
+      const bgg = readColor(bg, slot + 1);
+      const bb = readColor(bg, slot + 2);
       const matchBg =
         (Math.abs(br - bg0r) <= eps && Math.abs(bgg - bg0g) <= eps && Math.abs(bb - bg0b) <= eps) ||
         (Math.abs(br - bg1r) <= eps && Math.abs(bgg - bg1g) <= eps && Math.abs(bb - bg1b) <= eps) ||
