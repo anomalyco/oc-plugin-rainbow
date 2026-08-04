@@ -1,10 +1,11 @@
 const eps = 1 / 510;
+const eps255 = eps * 255;
 const top = "▀".charCodeAt(0);
 const tilt = (25 * Math.PI) / 180;
 const dx = Math.cos(tilt);
 const dy = Math.sin(tilt);
 const pi = Math.PI;
-const miss = 2;
+const miss = -1;
 
 export type RainbowColor = {
   r: number;
@@ -179,9 +180,9 @@ const syncThemeCache = (cache: ThemeCache, theme: RainbowTheme) => {
   addBgMark(bgMarks, bgSeen, theme.backgroundMenu);
 
   cache.ready = true;
-  cache.palette = palette;
+  cache.palette = palette.map((v) => v * 255);
   cache.paletteCount = palette.length / 3;
-  cache.bgMarks = bgMarks;
+  cache.bgMarks = bgMarks.map((v) => v * 255);
 };
 
 const paintFull = (
@@ -288,8 +289,8 @@ const applyBoth = (
       const b = fg[slot + 2]!;
 
       if (
-        (Math.abs(r - textR) <= eps && Math.abs(g - textG) <= eps && Math.abs(b - textB) <= eps) ||
-        (Math.abs(r - mutedR) <= eps && Math.abs(g - mutedG) <= eps && Math.abs(b - mutedB) <= eps)
+        (Math.abs(r - textR) <= eps255 && Math.abs(g - textG) <= eps255 && Math.abs(b - textB) <= eps255) ||
+        (Math.abs(r - mutedR) <= eps255 && Math.abs(g - mutedG) <= eps255 && Math.abs(b - mutedB) <= eps255)
       ) {
         paintFull(fg, slot, palette, paletteCount, fgPhase);
       }
@@ -298,10 +299,10 @@ const applyBoth = (
       const bgg = bg[slot + 1]!;
       const bb = bg[slot + 2]!;
       const matchBg =
-        (Math.abs(br - bg0r) <= eps && Math.abs(bgg - bg0g) <= eps && Math.abs(bb - bg0b) <= eps) ||
-        (Math.abs(br - bg1r) <= eps && Math.abs(bgg - bg1g) <= eps && Math.abs(bb - bg1b) <= eps) ||
-        (Math.abs(br - bg2r) <= eps && Math.abs(bgg - bg2g) <= eps && Math.abs(bb - bg2b) <= eps) ||
-        (Math.abs(br - bg3r) <= eps && Math.abs(bgg - bg3g) <= eps && Math.abs(bb - bg3b) <= eps);
+        (Math.abs(br - bg0r) <= eps255 && Math.abs(bgg - bg0g) <= eps255 && Math.abs(bb - bg0b) <= eps255) ||
+        (Math.abs(br - bg1r) <= eps255 && Math.abs(bgg - bg1g) <= eps255 && Math.abs(bb - bg1b) <= eps255) ||
+        (Math.abs(br - bg2r) <= eps255 && Math.abs(bgg - bg2g) <= eps255 && Math.abs(bb - bg2b) <= eps255) ||
+        (Math.abs(br - bg3r) <= eps255 && Math.abs(bgg - bg3g) <= eps255 && Math.abs(bb - bg3b) <= eps255);
 
       if (matchBg) {
         const rise = Math.sin((bgPhase - Math.floor(bgPhase)) * pi);
@@ -310,10 +311,10 @@ const applyBoth = (
 
         if (
           char[cell] === top &&
-          ((Math.abs(r - bg0r) <= eps && Math.abs(g - bg0g) <= eps && Math.abs(b - bg0b) <= eps) ||
-            (Math.abs(r - bg1r) <= eps && Math.abs(g - bg1g) <= eps && Math.abs(b - bg1b) <= eps) ||
-            (Math.abs(r - bg2r) <= eps && Math.abs(g - bg2g) <= eps && Math.abs(b - bg2b) <= eps) ||
-            (Math.abs(r - bg3r) <= eps && Math.abs(g - bg3g) <= eps && Math.abs(b - bg3b) <= eps))
+          ((Math.abs(r - bg0r) <= eps255 && Math.abs(g - bg0g) <= eps255 && Math.abs(b - bg0b) <= eps255) ||
+            (Math.abs(r - bg1r) <= eps255 && Math.abs(g - bg1g) <= eps255 && Math.abs(b - bg1b) <= eps255) ||
+            (Math.abs(r - bg2r) <= eps255 && Math.abs(g - bg2g) <= eps255 && Math.abs(b - bg2b) <= eps255) ||
+            (Math.abs(r - bg3r) <= eps255 && Math.abs(g - bg3g) <= eps255 && Math.abs(b - bg3b) <= eps255))
         ) {
           paintBlend(fg, slot, palette, paletteCount, bgPhase, amt);
         }
@@ -351,8 +352,8 @@ const applyFgOnly = (
       const g = fg[slot + 1]!;
       const b = fg[slot + 2]!;
       if (
-        (Math.abs(r - textR) <= eps && Math.abs(g - textG) <= eps && Math.abs(b - textB) <= eps) ||
-        (Math.abs(r - mutedR) <= eps && Math.abs(g - mutedG) <= eps && Math.abs(b - mutedB) <= eps)
+        (Math.abs(r - textR) <= eps255 && Math.abs(g - textG) <= eps255 && Math.abs(b - textB) <= eps255) ||
+        (Math.abs(r - mutedR) <= eps255 && Math.abs(g - mutedG) <= eps255 && Math.abs(b - mutedB) <= eps255)
       ) {
         paintFull(fg, slot, palette, paletteCount, fgPhase);
       }
@@ -399,10 +400,10 @@ const applyBgOnly = (
       const bgg = bg[slot + 1]!;
       const bb = bg[slot + 2]!;
       const matchBg =
-        (Math.abs(br - bg0r) <= eps && Math.abs(bgg - bg0g) <= eps && Math.abs(bb - bg0b) <= eps) ||
-        (Math.abs(br - bg1r) <= eps && Math.abs(bgg - bg1g) <= eps && Math.abs(bb - bg1b) <= eps) ||
-        (Math.abs(br - bg2r) <= eps && Math.abs(bgg - bg2g) <= eps && Math.abs(bb - bg2b) <= eps) ||
-        (Math.abs(br - bg3r) <= eps && Math.abs(bgg - bg3g) <= eps && Math.abs(bb - bg3b) <= eps);
+        (Math.abs(br - bg0r) <= eps255 && Math.abs(bgg - bg0g) <= eps255 && Math.abs(bb - bg0b) <= eps255) ||
+        (Math.abs(br - bg1r) <= eps255 && Math.abs(bgg - bg1g) <= eps255 && Math.abs(bb - bg1b) <= eps255) ||
+        (Math.abs(br - bg2r) <= eps255 && Math.abs(bgg - bg2g) <= eps255 && Math.abs(bb - bg2b) <= eps255) ||
+        (Math.abs(br - bg3r) <= eps255 && Math.abs(bgg - bg3g) <= eps255 && Math.abs(bb - bg3b) <= eps255);
 
       if (matchBg) {
         const rise = Math.sin((bgPhase - Math.floor(bgPhase)) * pi);
@@ -411,10 +412,10 @@ const applyBgOnly = (
 
         if (
           char[cell] === top &&
-          ((Math.abs(r - bg0r) <= eps && Math.abs(g - bg0g) <= eps && Math.abs(b - bg0b) <= eps) ||
-            (Math.abs(r - bg1r) <= eps && Math.abs(g - bg1g) <= eps && Math.abs(b - bg1b) <= eps) ||
-            (Math.abs(r - bg2r) <= eps && Math.abs(g - bg2g) <= eps && Math.abs(b - bg2b) <= eps) ||
-            (Math.abs(r - bg3r) <= eps && Math.abs(g - bg3g) <= eps && Math.abs(b - bg3b) <= eps))
+          ((Math.abs(r - bg0r) <= eps255 && Math.abs(g - bg0g) <= eps255 && Math.abs(b - bg0b) <= eps255) ||
+            (Math.abs(r - bg1r) <= eps255 && Math.abs(g - bg1g) <= eps255 && Math.abs(b - bg1b) <= eps255) ||
+            (Math.abs(r - bg2r) <= eps255 && Math.abs(g - bg2g) <= eps255 && Math.abs(b - bg2b) <= eps255) ||
+            (Math.abs(r - bg3r) <= eps255 && Math.abs(g - bg3g) <= eps255 && Math.abs(b - bg3b) <= eps255))
         ) {
           paintBlend(fg, slot, palette, paletteCount, bgPhase, amt);
         }
@@ -446,12 +447,12 @@ export const createRainbowPostProcess = (theme: () => RainbowTheme, value: () =>
     const skin = theme();
     syncThemeCache(cache, skin);
 
-    const textR = skin.text.r;
-    const textG = skin.text.g;
-    const textB = skin.text.b;
-    const mutedR = skin.textMuted.r;
-    const mutedG = skin.textMuted.g;
-    const mutedB = skin.textMuted.b;
+    const textR = skin.text.r * 255;
+    const textG = skin.text.g * 255;
+    const textB = skin.text.b * 255;
+    const mutedR = skin.textMuted.r * 255;
+    const mutedG = skin.textMuted.g * 255;
+    const mutedB = skin.textMuted.b * 255;
 
     const bgMarks = cache.bgMarks;
     const bg0r = bgMarks[0] ?? miss;

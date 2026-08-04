@@ -9,18 +9,7 @@
   "type": "module",
   "exports": {
     "./tui": {
-      "import": "./tui.tsx",
-      "config": {
-        "enabled": true,
-        "fg": true,
-        "bg": true,
-        "speed": 0.008,
-        "turns": 3,
-        "glow": 0.05,
-        "keybinds": {
-          "logo_splash": "ctrl+shift+r"
-        }
-      }
+      "import": "./tui.tsx"
     }
   },
   "scripts": {

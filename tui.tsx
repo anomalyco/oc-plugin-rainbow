@@ -136,7 +136,10 @@ const tui: TuiPlugin = async (api, options) => {
   if (options?.enabled === false) return;
 
   const [value, setValue] = createSignal(load(api, cfg(options)));
-  const keybind = api.keybind.create({ logo_splash: splashKeybind }, obj(options?.keybinds));
+  // `api.keybind` was removed in newer opencode TUI plugin API; resolve the keybind from options directly.
+  const keybind = {
+    get: (name: string) => (obj(options?.keybinds) as Record<string, string> | undefined)?.[name] ?? splashKeybind,
+  };
   const apply: (buffer: OptimizedBuffer, delta: number) => void = createRainbowPostProcess(
     () => api.theme.current,
     value,
